@@ -18,6 +18,7 @@ class qc_report():
     index: str
     value: str
 
+
 @dataclass
 class dataframe():
     """
@@ -80,19 +81,19 @@ class dataframe():
     TAT: Optional[str]
     SampleAge: Optional[str]
 
+
 class MonitorQC:
     """
     A class to take the QC files and append them to the errors_log,
     also to display the result so any errors are clear and the steps
     that need to be taken are obvious
     """
-    def __init__(self, qc_path, data_path, email_mapping_path, error_log_path):
+    def __init__(self, data_path, qc_path, email_mapping_path, error_log_path):
+        self.dataframe = pd.read_excel(data_path)
         self.qc_report = pd.read_csv(qc_path)
-        self.dataframe = pd.read_csv(data_path)
         self.email_mapping = pd.read_excel(email_mapping_path)
         self.qc_log = pd.read_csv(error_log_path)
         self.error_log_path = error_log_path
-
 
     def append_qc(self):
         """
@@ -117,10 +118,22 @@ class MonitorQC:
         Assay fail count
 
         """
-        tcpos1_pos = self.dataframe[self.dataframe.TCPOS1 == 'YES'].shape[0]
-        print(tcpos1_pos)
-        prevalence = tcpos1_pos/self.dataframe.shape[0]
-        print(prevalence)
+        datafame_patient_group = self.dataframe.groupby("SUBJECT")
+        datafame_sample_group = self.dataframe.groupby("SPECID")
+
+        sample_pivot = pd.pivot_table(self.dataframe, index=['SPECID'], columns=['SPECID'],values=['TCPOS1'], aggfunc="count")
+        print("sample_pivot:", sample_pivot)
+        tcpos_count = self.dataframe['TCPOS1'].value_counts()['YES']
+        print("tcpos_count:", tcpos_count)
+
+
+        # prevalence = tcpos1_pos / self.dataframe.shape[0]
+        # print('prev1:', prevalence)
+
+        # tcpos_count1 = self.dataframe.groupby("SUBJECT").TCPOS1.value_counts().sum()
+        # print("tcpos_count1", tcpos_count1)
+        # prev2 = self.dataframe.TCPOS1.value_counts(normalize=True)
+        # print("prev2:", prev2)
 
     def display_monitoring(self):
         """ Outputs QC checks and summary in a neat format to
@@ -129,12 +142,10 @@ class MonitorQC:
         print(self.dataframe.head())
 
 
-
 if __name__ == "__main__":
-    qc = MonitorQC(qc_path =  'data/PACIFIC8_test_data_Hematogenix_ddu_pathologist_2023_07_12_12_15_40_qc_report.csv',
-                   data_path='data/PACIFIC8_test_data.csv',
-                   email_mapping_path='data/D9075C00001_PACIFIC8_PDL1_IHC_Hematogenix_Global_TRACKER_22AUG2022.xlsx',
-                   error_log_path = 'data/ERROR_LOG.csv')
+    qc = MonitorQC(data_path='data/PAC8_data_report.xlsx',
+                   qc_path='data/PAC8_qc_report.csv',
+                   email_mapping_path='data/MappingFileMasterSheet_PAC8.xlsx',
+                   error_log_path='data/ERROR_LOG.csv')
 
-    qc.calc_prevalences()
-
+    qc.calc_summary()
