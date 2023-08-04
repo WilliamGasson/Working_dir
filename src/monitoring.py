@@ -3,85 +3,7 @@ import numpy as np
 from dataclasses import dataclass
 from typing import Optional
 import datetime
-
-
-@dataclass
-class qc_report():
-    """
-    Dataclass from qc_report format
-    """
-    id: str
-    scope: str
-    step: str
-    severity: str
-    message: str
-    column: str
-    index: str
-    value: str
-
-
-@dataclass
-class dataframe():
-    """
-    Dataclass to map the data from the clinical trial
-    """
-    STUDY: str
-    INDICAT: str
-    LABNAME: str
-    SUBJECT: str
-    CENTRE: int
-    SPECID: str
-    LABACSL: str
-    SPECDAT: datetime.datetime
-    RECEDT: datetime.datetime
-    BMREDAT: datetime.datetime
-    TYPSPEC: str
-    BLOCKNUM: str
-    BLOCKID: str
-    SLIDENUM: str
-    SECDT: str
-    SECMIC: str
-    TYPTUM: str
-    PRITUM: str
-    FIXATIVE: str
-    FIXSPEC: str
-    FIXTIME: str
-    COLECM: str
-    SAMPACC: str
-    SAMPREAS: str
-    RUNNUM: str
-    STAINDT: datetime.datetime
-    READDT: datetime.datetime
-    CSSTAT: str
-    RUNCONT: str
-    RUNCREAS: str
-    RUNCRESP: str
-    HEACCP: str
-    CSNCNTR: str
-    IHCVIA: str
-    CSMORPH: str
-    CSBCKGR: str
-    STAINPER: str
-    RTPRPOS: int
-    TCPOS1: str
-    TCPOS10: str
-    TCPOS25: str
-    TCPOS50: str
-    ICTOTAL: str
-    ICPOSPDP: str
-    ICPOSLS: str
-    ICPOSS: str
-    ICPOS25: str
-    BMGEDES: str
-    BMCOM: str
-    PATHNM: str
-    dx: Optional[str]
-    assay: Optional[str]
-    qcpass: Optional[str]
-    filename: Optional[str]
-    TAT: Optional[str]
-    SampleAge: Optional[str]
-
+from SummaryReport import SummaryReport
 
 class MonitorQC:
     """
@@ -95,13 +17,20 @@ class MonitorQC:
         self.email_mapping = pd.read_excel(email_mapping_path)
         self.error_log = pd.read_csv(error_log_path)
 
+        self.summary_report = SummaryReport()
+        self.summary_report_location = "data/PAC8_sumary_report.csv"
 
     def extend_qc(self):
         """
         Add date, sample_id, labname, subject_id to the qc report
         """
-        self.qc_report
-        
+        self.qc_report["sample_id"] = self.dataframe.loc[self.qc_report["index"],self.dataframe["sample_id"]]
+        self.qc_report["subject_id"] = self.dataframe.loc[self.qc_report["index"],self.dataframe["subject_id"]]
+        self.qc_report["labname"] = self.dataframe.loc[self.qc_report["index"],self.dataframe["labname"]]
+        self.qc_report["date"] = self.dataframe.loc[self.qc_report["index"],self.dataframe["sample_id"]]
+
+        self.qc_report["Fixed"] = 0
+
     def append_qc(self):
         """
         Add the latest QC errors to the Error_Log
@@ -113,90 +42,93 @@ class MonitorQC:
 
     def create_tc(self, df):
         """
-        cleans RTPROS column and replaces not applicable with nan and 
+        cleans RTPROS column and replaces not applicable with nan and
         """
-        df.replace('not applicable', np.nan, inplace=True)
+        df["TC"] = df["RTPRPOS"]
+        df["TC"] = df["TC"].replace('NOT APPLICABLE', np.nan)
+        df["TC"] = df["TC"].replace('<1%', 0.005)
+        df["TC"] = df["TC"]*100
+        return df
+
+    def clean_dates(self, df, column):
+        """
+        cleans date column and replaces not applicable with nan and
+        """
+        df[column].replace('NOT APPLICABLE', np.nan, inplace=True)
+        df[column] = df[column].values.astype('datetime64[D]')
 
         return df
 
-    def calculate_TAT(self, df):
+    def calculate_tat(self, df):
         """
         Average TAT
         TAT average initial
         TAT average repeat
         """
-        df.replace('not applicable', np.nan, inplace=True)
 
-        df["TAT"] = (df["STAINDT"] - df["BMREDAT"]).dt.days
-        # df["TAT"] = np.busday_count(df['STAINDT'], df['BMREDAT']) -1
+        def workday_count(row):
+            if pd.notnull(row["STAINDT"]) and pd.notnull(row["BMREDAT"]):
+                return np.busday_count(pd.to_datetime(row["STAINDT"]).date(), pd.to_datetime(row["BMREDAT"]).date())
+            else:
+                return np.nan
 
+        df["TAT"]= df.apply(workday_count, axis=1)
 
-        # if df['BMREDAT'] == "" or df['RECEDT'] == "": 
-        #     tat = "MISSING DATE",
-        #     if df['CSSTAT'] == "":
-        #         tat = "NOT TESTED" 
-        #         if df['CSSTAT'] == "NOT APPLICABLE":
-        #             tat = "NOT TESTED" 
-        #             if df['BMREDAT'] == "NOT APPLICABLE":
-        #                 tat = "NOT TESTED"
-        #                 if df.loc[df['CSSTAT'].str.contains("Repeat", case = False)]:
-        #                   tat = np.busday_count(df['STAINDT'], df['BMREDAT']) -1, 
-        #                 else:
-        #                     tat = ""
         return df
-    
+
+    def add_failtype(self, df):
+        df['failtype'] = "False"
+
+        df.loc[
+            (df["RTPRPOS"] != "NOT APPLICABLE") |
+            (df["RTPRPOS"] != "NOT EVALUABLE"),
+            "failtype"
+            ] = "PASS"
+
+        df.loc[
+            (df['SAMPACC'] == "NOT APPLICABLE") |
+            (df['SAMPACC'] == "NO" )|
+            (df['RUNNUM'] == "NOT APPLICABLE" )|
+            (df["HEACCP"] == "NO") |
+            (df["CSNCNTR"] == "NO") |
+            (df["IHCVIA"] == "NO") |
+            (df["CSMORPH"] == "NO") |
+            (df["CSBCKGR"] == "NO") |
+            (df["STAINPER"] == "NO") |
+            (df["BMGEDES"].str.contains("specimen|tissue|tumor|background unacceptable|morphology|staining|technical",case = False)) |
+            (df["BMCOM"].str.contains("specimen|tissue|tumor|background unacceptable|morphology|staining|technical",case = False)),
+            'failtype'
+            ] = "SampleQC"
+
+        df.loc[
+            (df['RUNCONT'] == "NO") |
+            (df["BMGEDES"].str.contains("run|control", case = False)) |
+            (df["BMCOM"].str.contains("run|control", case = False)),
+            'failtype'
+            ] = "AssayQC"
+
+        return df
+
     def preprocess_df(self):
         """
         Function to run preprocessing and add columns
         """
         self.dataframe = self.create_tc(self.dataframe)
 
-        self.dataframe = self.calculate_TAT(self.dataframe)
+        date_cols = ["BMREDAT", "SPECDAT", "STAINDT", "READDT"]
 
-    def calculate_prevalence(self, df, group, column):
-        """
-        Caluculate the prevalences of TCPOS1 against
-        sample_id and subject_id
-        sample prevalence
-        subject prevalence
-        failure rate
-        QC fail count
-        Assay fail count
-        """        
-        # if yes isnumber val = "positive" elif no isnumber val = "negative" else val = "fail"
-        # postive count is the number of patients - number that are not positive
+        for date_col in date_cols:
+            self.dataframe = self.clean_dates(self.dataframe, date_col)
 
-        df = df[[group, column]]
-        patient_pivot2 = df.set_index(group).stack().str.get_dummies().sum(level=0)
+        self.dataframe = self.calculate_tat(self.dataframe)
 
-        patient_count = df[group].nunique()
-        yes_count = patient_count - patient_pivot2.YES.value_counts()[0]
+        self.dataframe = self.add_failtype(self.dataframe)
 
-        no_count = patient_count - patient_pivot2.NO.value_counts()[0]
-        print(patient_pivot2.NO.value_counts())
-
-        prevalence = (yes_count)/(yes_count + no_count)
-        fail_count = patient_count - no_count - yes_count
-
-        return patient_count, prevalence, yes_count, no_count, fail_count
-
-    def prepare_summary_report(self):
-        """ Outputs QC checks and summary in a neat format to
-        show the state of the study
-        """
-        df = self.dataframe
-
-        # df = self.calculate_TAT(df)
-
-
-        summary_df = pd.DataFrame(columns = ["group", "column","patient_count","prevalence","yes_count", "no_count",  "fail_count"])
-        for group in ["SUBJECT", "SPECID"]:
-            for column in ["TCPOS1","TCPOS10","TCPOS25","TCPOS50"]:
-                patient_count, prevalence, yes_count, no_count, fail_count = self.calculate_prevalence(df, group, column)
-
-
-                summary_df.loc[len(summary_df.index)] = (group, column, patient_count, prevalence, yes_count, no_count, fail_count)
-        return summary_df
+    def prepare_records(self):
+        self.preprocess_df()
+        self.summary_report.prepare_summary_report(self.dataframe)
+        #print(self.summary_report.summary_df)
+        self.summary_report.save(self.summary_report_location)
 
 
 
@@ -205,11 +137,8 @@ if __name__ == "__main__":
                    qc_path='data/PAC8_qc_report.csv',
                    email_mapping_path='data/MappingFileMasterSheet_PAC8.xlsx',
                    error_log_path='data/ERROR_LOG.csv')
-    
-    qc.preprocess_df()
-    
-    report = qc.prepare_summary_report()
-    print(report)
+
+    qc.prepare_records()
 
     # report.to_csv("data/PAC8_summary_report.csv")
-    
+
