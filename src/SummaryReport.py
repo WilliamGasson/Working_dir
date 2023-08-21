@@ -60,7 +60,10 @@ class SummaryReport:
 
                 self.summary_df.loc[len(self.summary_df.index)] = (group, column, patient_count, prevalence, yes_count, no_count, fail_count)
 
-        print(self.calculate_fails(df, "SPECID", "failtype"))
+        pass_count, assay_count, sample_count = self.calculate_fails(df, "SPECID", "failtype")
+        self.summary_df["pass_count"] =  pass_count
+        self.summary_df["assay_fail_count"] =  assay_count
+        self.summary_df["sample_fail_count"] =  sample_count
 
         self.summary_df["av_tat_inital"] = df.loc[df['CSSTAT'] == "INITIAL", "TAT"].mean()
         self.summary_df["av_tat_repeat"] = df.loc[df['CSSTAT'].str.contains("REPEAT"), "TAT"].mean()

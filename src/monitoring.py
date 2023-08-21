@@ -127,8 +127,8 @@ class MonitorQC:
     def prepare_records(self):
         self.preprocess_df()
         self.summary_report.prepare_summary_report(self.dataframe)
-        #print(self.summary_report.summary_df)
         self.summary_report.save(self.summary_report_location)
+        return self.summary_report
 
 
 
@@ -139,6 +139,8 @@ if __name__ == "__main__":
                    error_log_path='data/ERROR_LOG.csv')
 
     qc.prepare_records()
+    
+    print(qc.summary_report.summary_df)
 
     # report.to_csv("data/PAC8_summary_report.csv")
 
