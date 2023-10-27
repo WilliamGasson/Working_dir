@@ -1,0 +1,275 @@
+# Default config file
+# Paths to directories
+solvebio_dir: "~/solvebio"
+temp_dir: "~/solvebio/temp"
+log_dir: "~/solvebio/log"
+default_log: "az-sb-tools.log"
+
+
+# Paths to service files on SCP. Can be overriden with ENV variables (just use upper case version)
+processed_dir: "/projects/ngs_prodifx/local/software/az-sb-tools/processed"
+local_bed_dir: "/projects/ngs/reference/seqauto_bed/"
+msi_dir: "/projects/ngs_prodifx/local/software/az-sb-tools/msi_genome/"
+cds_dir: "/projects/ngs_prodifx/local/software/az-sb-tools/cds_genome/"
+artifact_grch37: '/projects/ngs/azbifx/NGS/genomes/hg19/Annotation/filter_common_artifacts.txt'
+artifact_grch38: '/projects/ngs/azbifx/NGS/genomes/hg38/Annotation/filter_common_artifacts.txt'
+model_deputy: '/projects/ngs_prodifx/local/software/az-sb-tools/deputy_models/SPHFPa_Aux_DP-NSCLC-Ov_AZ700-TNBC_denovo_40000Job24681430_TrainedOnAllData.h5'
+
+# List of service users that are able to run command with --all in cronjob scripts
+service_user:
+  - "cron_service_user"
+  - "kphr978"
+
+### APIs
+clinical_trials_api: 'https://clinicaltrials-api.astrazeneca.net'
+seqauto_api: 'https://seqauto.ngs.astrazeneca.net'
+semaphore_api_dev: "https://eu-nprd.connect.astrazeneca.net/api/dv-prx-erdm-publish/1/"
+
+### Keys for Semaphore DEV
+semaphore_api:
+    dev:
+        cv_client_id: "d07efc28c31f44fa98c6211e3137a633"
+        cv_client_secret: "f3BB5AD3DCF34F2B809780e93D9EB0fB"
+        url: 'https://eu-nprd.connect.astrazeneca.net/api/dv-prx-erdm-publish/1/'
+    prod:
+        cv_client_id: "a527c339daf34bb0920971ce6803ec3f"
+        cv_client_secret: "B1207a6428C546c1AE3fB0522bED2DD4"
+        url: 'https://eu-prd.connect.astrazeneca.net/api/prx-erdm-publish/1/'
+    current_env: dev # PROD endpoint doesn't support spaces in concept name at the moment
+
+cv_ids:
+  Indication:
+    facet: 'AZ Indication'
+    super_class: 'https://purl.astrazeneca.net/rd/vocab/az_cohort_charac/AZ_COHORT_CHARAC_0000001'
+    ontology: 'az_cohort_charac'
+
+cv_remaps:
+  'Non Small Cell Lung Carcinoma': 'Non Small Cell Lung Cancer (NSCLC)'
+  'Non small cell lung cancer (NSCLC)': 'Non Small Cell Lung Cancer (NSCLC)'
+  'Non Small Cell Lung Cancer': 'Non Small Cell Lung Cancer (NSCLC)'
+  'Small Cell Lung Carcinoma': 'Small Cell Lung Cancer (SCLC)'
+  'Small-cell Lung Cancer': 'Small Cell Lung Cancer (SCLC)'
+  'Small cell Lung Cancer': 'Small Cell Lung Cancer (SCLC)'
+  'Small Cell Lung Carcinoma (SCLC)': 'Small Cell Lung Cancer (SCLC)'
+  'Triple Receptor Negative Breast Cancer': 'Triple Negative Breast Cancer (TNBC)'
+  'Triple Negative Breast Cancer': 'Triple Negative Breast Cancer (TNBC)'
+  'TNBC': 'Triple Negative Breast Cancer (TNBC)'
+  'Head Neck cancer': 'Head and Neck Cancer'
+  'Head and Neck': 'Head and Neck Cancer'
+  'Ovarian Carcinoma': 'Ovarian Cancer'
+  "Papillary Renal Cell Cancer": "Renal Cancer"
+  "Pancreatic": "Pancreatic Cancer"
+  'Pancreatic Ductal Adenocarcinoma': "Pancreatic Cancer"
+  'Urinary Bladder Cancer': 'Bladder Cancer'
+  "Bladder cancer": "Bladder Cancer"
+  "Bladder": "Bladder Cancer"
+  "Gastric Adenocarcinoma": "Gastric Cancer"
+  'Colorectal Carcinoma': 'Colorectal Cancer'
+  'Cervical Carcinoma': 'Cervical Cancer'
+  'Endometrial Carcinoma': 'Endometrial Cancer'
+  'Hepatocellular Carcinoma': 'Hepatocellular Cancer'
+  'Primary Peritoneal Carcinoma': 'Primary Peritoneal Cancer'
+  'Solid tumour': 'Solid Tumour'
+
+# AWS ARNs
+arns:
+  omics_arn: 'arn:aws:sns:us-east-1:671016219382:az_sb_tools_omics_team'
+  support_arn: 'arn:aws:sns:us-east-1:671016219382:az_sb_tools_support'
+  support_ia_arn: 'arn:aws:sns:us-east-1:671016219382:az_sb_tools_import_ia'
+
+# The path to specific R libraries that are installed special for these scripts. Can be change for local installation
+# to standard one
+prod_inf_bundle: [ 'azcore::azcore_bundle_load( "ewf/0.9.1" )', 'azcore::azcore_bundle_load("prodinformatics/1.0.0")']
+
+### FILTERS
+filters:
+  # Vardict NGS Report Tissue Filter w/ gnomAD (with Unknowns)
+  vardict_tissue_with_unknowns_w_gnomad: "1264492406209945980"
+  # Vardict NGS Report Tissue Filter w/ gnomAD (without Unknowns)
+  vardict_tissue_without_unknowns_w_gnomad: "1264492405381085199"
+  # Dragen NGS Report Tissue Filter w/ gnomAD (with Unknowns)
+  dragen_tissue_with_unknowns_w_gnomad: "1722465908560559755"
+  # DRAGEN NGS Report Plasma (Stringent) Filter w/ GnomAD (with Unknowns)
+  dragen_plasma_stringent_with_unknowns: "1722465919345886900"
+  # Vardict NGS Report Plasma (Stringent) Filter w/ GnomAD (with Unknowns)
+  vardict_plasma_stringent_with_unknowns: "1264492402844358695"
+  seq2c: '' # TODO: create filters
+  structural: ''
+  dragen-sv: ''
+
+### TEMPLATES
+templates:
+  myriad_germline: "2133449249922188696"
+  myriad_mgsta: "2133448023797255126"
+  grch37_vcf_template: "1197785872025123239"
+  grch38_vcf_template: "1197787101794402921"
+  standalone_classifier: "2133373301615145931"
+
+oapl_suppliers:
+  - name: FMI
+    template_id: "1720333091666024052"
+    folder: FMI_source_files/OAPL
+  - name: FMI_lq
+    template_id: "1720333091666024052"
+    folder: FMI_source_files_lq/OAPL
+  - name: Resbio
+    template_id: "1912381393225099393"
+    folder: resbio_source_files
+  - name: Guardant
+    template_id: "1912396087251484797"
+    folder: GH_source_files
+  - name: Natera
+    template_id: "2133450289306964061"
+    folder: natera_source_files
+  - name: PGDx
+    template_id: "1400098928705544410"
+    folder: PGDX_source_files
+  - name: ddpcr
+    template_id: "2133444780209178189"
+    folder: ddpcr_source_files
+  # this is variant (OAPL) data, not sample
+  - name: Haystack
+    template_id: "1959476273012282061"
+    folder: Haystack_source_files
+  - name: Personalis
+    template_id: "1959476273012282061"
+    folder: Personalis_source_files
+
+mrd_suppliers:
+  - Haystack
+  - Personalis
+
+cumulative_gh_studies:
+  - HUDSON_D6185C00001
+
+genedata_suppliers:
+  - name: Dizal
+    folder: genedata_dizal_source_files
+
+### PATHS TO SUPPLIER DIRS
+fmi_aga_dir: 'FMI_source_files/AGA'
+fmi_aga_loh_dir: 'FMI_source_files/AGA/LOH_Sample'
+fmi_ospl_dir: 'FMI_source_files/OSPL'
+fmi_sst_dir: 'FMI_source_files/SST'
+fmi_manifest_dir: 'FMI_source_files/Manifest'
+fmi_interim_dir: 'FMI_source_files/Interim_data'
+gh_mr_dir: 'GH_source_files/MR'
+grail_dir: 'Grail_source_files'
+
+# QC Reports Folders for ingestion scripts
+default_qc_reports: "qc_and_monitoring"
+
+# START: flow_recon configuration
+
+flow_recon:
+  flow_source_dir: 'flow_source_files'
+
+# END: flow_recon configuration
+
+# START: import_ia configuration
+
+import_ia:
+  standards:
+    suppliers:
+      - name: 'Tissue_Image'
+        folder: 'image_source_files'
+    data_mapping: 'astrazeneca:NGS Knowledgebase:/ImageAnalysis/mapping_file_general'
+    string_na_values: ['',' ', 'nan', 'none', 'None', None, '<NA>', 'NaN', np.NaN]
+    
+    # placeholder until used in production
+    controlled_vocabulary:
+      - QCMETHOD: "astrazeneca:NGS Knowledgebase:/ImageAnalysis/controlled_vocabularies/digital_readouts/qcmethod-1.0.0.yaml"
+      - METHOD: "astrazeneca:NGS Knowledgebase:/ImageAnalysis/controlled_vocabularies/digital_readouts/method-1.0.0.yaml"
+    
+    # placeholder until used in production
+    readout_format: {
+      "cytoplasm_[0|1|2]": [ 0, 100 ],
+      "mem_[0|1|2]": [ 0, 100 ],
+      perc_: [ 0, 100 ],
+      per_pos_: [ 0, 100 ],
+      total_perc_: [ 0, 100 ],
+      tum_per_neg: [ 0, 100 ],
+      tum_pos_total: [ 0, 100 ],
+      hscore: [ 0, 300 ],
+      h_score: [ 0, 300 ],
+      her2_score: [ 0, 3 ],
+      ic_pdl1_ta: [ 0, 100 ],
+      ic_pdl1: [ 0, 100 ],
+      tc_pdl1: [ 0, 100 ],
+      ic_total: [ 0, 100 ],
+      tiss_surf: [ 0, 1950 ], # less than 10000?
+      tum_surf:  [ 0, 1950 ], # less than 10000?
+      #   tip: "", # ?
+      cps: [ 0, 100, "float" ], # 0-100
+    }
+  
+  # allow custom headers to override supplier based on vault name
+  custom_headers:
+    HUDSON_D6185C00001: '0'
+
+  suppliers:
+    - name: Covance
+      strategies:
+        - type: pathologist
+          automated: true
+          source:
+            folder: 'image_source_files/Covance_source_files'
+            header: '7'
+          fields:
+            biomarker: [ 'PDL1 22C3 IHC-1','PDL1 SP142 IHC-1', 'PDL1 22C3 IHC-2','PDL1 SP142 IHC-2']
+            metric_column_name: 'test_short_name_all'
+            info_column_name: 'group_descr'
+            subject_name: 'subjid'
+            transpose_values_source: 'result_conv_units_all'
+            readout_column: 'readout'
+          qc_checks:
+            pipeline:
+              params:
+                mapping: 'astrazeneca:NGS Knowledgebase:/ImageAnalysis/mapping_file_general'
+                supplier: 'Covance'
+              steps:
+                - CheckEssentialColumns:
+                    columns: solvebio@astrazeneca:NGS Knowledgebase:/ImageAnalysis/mapping_file_general?domain=Covance?essential=Yes
+                    check_na: True
+                    severity: FATAL
+                - CheckColumnIsDate:
+                    column: 'spec_coll_date'
+                    format: '%d.%b.%Y'
+                    severity: ERROR    
+                - CheckColumnMatchesExpression:
+                    column: 'e_code'
+                    regex: '^E[0-9]{7}$'
+                    severity: WARNING
+                - CheckColumnMatchesExpression:
+                    column: 'accession'
+                    regex: '^[0-9]{10}$'
+                    severity: WARNING
+
+
+# END: import_ia configuration
+
+# SolveBio has limit for records list that can be imported at once
+records_limit: 5000
+
+# Default sleep between attempts to check if dataset is idle
+sleep_seconds: 60
+
+# Default coverage depths for TMB and MSI
+tmb_exome_depth: 50
+msi_depth: 15
+
+
+### PATHS TO SERVICE DATASETS
+panel_widths: "astrazeneca:NGS Knowledgebase:/Panels/Panel_Widths"
+signatures: "astrazeneca:NGS Knowledgebase:/Signatures/Signatures_CancerTypes"
+rna_signatures: "astrazeneca:AZsigDB:/Gene Signatures/azsigdb_annotations_with_genes.tsv"
+aetiologies: "astrazeneca:NGS Knowledgebase:/Signatures/Signature_Aethiology"
+celline_dataset: 'astrazeneca:NGS Knowledgebase:/Pharmacology/Mapping_CellNames'
+drug_dataset: 'astrazeneca:NGS Knowledgebase:/Pharmacology/Mapping_DrugNames'
+dbsnp_db: 'solvebio:public:/dbSNP/2.1.0-b154/Variants-GRCh37'
+kb_hg37: "astrazeneca:NGS Knowledgebase:/KB v1.17-GRCh37"
+kb_hg38: "astrazeneca:NGS Knowledgebase:/KB v1.17-GRCh38"
+
+
+default_esr: ['D538G', 'Y537S', 'Y537N', 'Y537C', 'Y537D', 'L536R', 'L536H',
+              'L536P', 'S463P', 'V422del', 'E380Q']
